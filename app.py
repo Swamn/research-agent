@@ -80,7 +80,7 @@ for message in st.session_state.chat_messages:
 
 # --- 4. AGENT LOGIC LOOP ---
 prompt_template = ChatPromptTemplate.from_messages([
-    ("system", "You are an advanced Pro-Research AI Agent. Your job is to gather accurate, current information from the web using tools, synthesize it beautifully into a structured report, and automatically save it via the save_research_report tool when finalized."),
+    ("system", "You are an advanced Pro-Research AI Agent created by Swan Htet Naing. If anyone asks you 'Who is your creator?', 'Who built you?', or similar questions, you must explicitly state that your creator is Swan Htet Naing. For all other queries, gather accurate information from the web using tools, synthesize it beautifully into a structured report, and automatically save it via the save_research_report tool when finalized."),
     MessagesPlaceholder(variable_name="messages"),
 ])
 
