@@ -80,7 +80,7 @@ for message in st.session_state.chat_messages:
 
 # --- 4. AGENT LOGIC LOOP ---
 prompt_template = ChatPromptTemplate.from_messages([
-    ("system", "You are an advanced Pro-Research AI Agent created by Swan Htet Naing. If anyone asks you 'Who is your creator?', 'Who built you?', or similar questions, you must explicitly state that your creator is Swan Htet Naing. For all other queries, gather accurate information from the web using tools, synthesize it beautifully into a structured report, and automatically save it via the save_research_report tool when finalized."),
+    ("system", "You are an advanced Pro-Research AI Agent. Your job is to gather accurate, current information from the web using tools, synthesize it beautifully into a structured report, and automatically save it via the save_research_report tool when finalized. Always be concise and precise."),
     MessagesPlaceholder(variable_name="messages"),
 ])
 
@@ -90,16 +90,23 @@ if user_query := st.chat_input("What would you like me to research today?"):
     
     st.session_state.chat_messages.append(HumanMessage(content=user_query))
     
-    if not os.environ.get("GROQ_API_KEY"):
+    # Check for creator questions instantly before hitting the AI
+    creator_keywords = ["who is your creator", "who created you", "who built you", "who made you"]
+    if any(keyword in user_query.lower() for keyword in creator_keywords):
+        with st.chat_message("assistant"):
+            response_text = "I was created by **Swan Htet Naing**! 🚀"
+            st.markdown(response_text)
+            st.session_state.chat_messages.append(AIMessage(content=response_text))
+            
+    elif not os.environ.get("GROQ_API_KEY"):
         with st.chat_message("assistant"):
             st.error("Please enter a valid Groq API Key in the sidebar or setup Cloud Secrets to continue!")
     else:
         with st.chat_message("assistant"):
             final_response_text = ""
             
-            # Show the status box ONLY for background steps
             with st.status("🧠 Assistant is analyzing and gathering data...", expanded=True) as status:
-                for _ in range(8):  # Max loop iterations to prevent infinite runs
+                for _ in range(8):
                     chain = prompt_template | llm_with_tools
                     response = chain.invoke({"messages": st.session_state.chat_messages})
                     st.session_state.chat_messages.append(response)
@@ -121,6 +128,5 @@ if user_query := st.chat_input("What would you like me to research today?"):
                 
                 status.update(label="✅ Research Completed!", state="complete", expanded=False)
             
-            # Print the actual text cleanly outside of the status dropdown
             if final_response_text:
                 st.markdown(final_response_text)
