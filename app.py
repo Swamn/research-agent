@@ -95,6 +95,9 @@ if user_query := st.chat_input("What would you like me to research today?"):
             st.error("Please enter a valid Groq API Key in the sidebar or setup Cloud Secrets to continue!")
     else:
         with st.chat_message("assistant"):
+            final_response_text = ""
+            
+            # Show the status box ONLY for background steps
             with st.status("🧠 Assistant is analyzing and gathering data...", expanded=True) as status:
                 for _ in range(8):  # Max loop iterations to prevent infinite runs
                     chain = prompt_template | llm_with_tools
@@ -103,7 +106,7 @@ if user_query := st.chat_input("What would you like me to research today?"):
                     
                     if not response.tool_calls:
                         if response.content:
-                            st.markdown(response.content)
+                            final_response_text = response.content
                         break
                     
                     for tool_call in response.tool_calls:
@@ -117,3 +120,7 @@ if user_query := st.chat_input("What would you like me to research today?"):
                         status.write("✨ Data gathered successfully!")
                 
                 status.update(label="✅ Research Completed!", state="complete", expanded=False)
+            
+            # Print the actual text cleanly outside of the status dropdown
+            if final_response_text:
+                st.markdown(final_response_text)
